@@ -1,0 +1,2 @@
+import fly
+fly.main()
