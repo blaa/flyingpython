@@ -10,10 +10,10 @@ PITCH_AXIS = 1
 ROLL_AXIS = 0
 ENGINE_AXIS = 4
 
-SCALE_FACTOR = 0.4
-ROLL_SCALE_FACTOR = 0.8
+SCALE_PITCH_FACTOR = 0.3
+ROLL_SCALE_FACTOR = 0.4
 UPDATES_PER_S = 20
-
+ENGINE_DELAY = UPDATES_PER_S * 2
 
 class Flyer:
     "Flyer interface"
@@ -43,6 +43,7 @@ class Control:
         self.trim_roll = 0
         self.engine_power = 0
         self.engine_toggle_check = 0
+        self.engine_delay = 0
 
     def _init_pygame(self, joy_id=0):
         "Pygame initialization + debug"
@@ -87,8 +88,8 @@ class Control:
 
     def do_move(self):
         "Movement, updated periodically"
-        pitch = self.joystick.get_axis(PITCH_AXIS) * SCALE_FACTOR
-        roll = self.joystick.get_axis(ROLL_AXIS) * SCALE_FACTOR
+        pitch = self.joystick.get_axis(PITCH_AXIS) * SCALE_PITCH_FACTOR
+        roll = self.joystick.get_axis(ROLL_AXIS)
         throttle = -self.joystick.get_axis(ENGINE_AXIS)
 
         pitch_trimmed = pitch - self.trim_pitch
@@ -117,12 +118,16 @@ class Control:
                               MIDDLE_B, MAX/2, 92, 221)
         pwm_c = self.to_servo(-pitch_trimmed, MIDDLE_C, MAX/2, 110, 254)
 
-        print(f"P{pitch:4.1f} R{roll:4.1f} E {throttle:4.1f} T:{self.trim_pitch:5.2f} {self.trim_roll:5.2f}"
+        print(f"P{pitch:5.2f} R{roll:5.2f} E {throttle:5.2f} T:{self.trim_pitch:5.2f} {self.trim_roll:5.2f}"
               f" -> {pwm_a:3d} {pwm_b:3d} {pwm_c:3d} {engine_power:4d}")
         self.flyer.control(pwm_a, pwm_b, pwm_c, engine_power, 0, 0)
 
     def calculate_engine_power(self, throttle):
         "Update engine power using current throttle setting."
+        if self.engine_delay:
+            self.engine_delay -= 1
+            return 0
+
         if self.engine_toggle_check == 0 and throttle > 0.9:
             self.engine_toggle_check = 1
             print("ENGINE: High range check OK")
@@ -132,20 +137,27 @@ class Control:
             # Ready, range OK
         elif self.engine_toggle_check == 2:
             # Calculate engine power change
-            if throttle < -0.95:
-                # Immediate off
+            if throttle < -0.98:
+                # Immediate/emergency off
+                self.engine_delay = ENGINE_DELAY
                 self.engine_power = 0
-            else:
+            elif throttle > 0.1:
+                throttle -= 0.1
                 # In 1.5 seconds to max
                 SECONDS = 1.0
                 DELTA = 1 + 1023 / UPDATES_PER_S / SECONDS
                 self.engine_power += int(DELTA * throttle)
-                self.engine_power = max(0, min(self.engine_power, 1023))
+            elif throttle < 0.0:
+                # In 0.5 seconds to min
+                SECONDS = 0.5
+                DELTA = 1 + 1023 / UPDATES_PER_S / SECONDS
+                self.engine_power += int(DELTA * throttle)
+        self.engine_power = max(0, min(self.engine_power, 1023))
         return self.engine_power
 
     def trim(self):
-        pitch = self.joystick.get_axis(PITCH_AXIS) * SCALE_FACTOR
-        roll = self.joystick.get_axis(ROLL_AXIS) * SCALE_FACTOR
+        pitch = self.joystick.get_axis(PITCH_AXIS) * SCALE_PITCH_FACTOR
+        roll = self.joystick.get_axis(ROLL_AXIS)
 
         pitch_trimmed = pitch - self.trim_pitch
         roll_trimmed = roll - self.trim_roll
