@@ -25,7 +25,7 @@ name seems taken. It's a busy year.
 
 Parts
 -----
-- Larger styrofoam plane.
+- Larger styrofoam plane (mine has 49cm nose-to-tail)
 - ESP-12S (other will work; ESP-12S has 4MB of flash, µPython is cool with
   1MB).
 - 2x 5g servo for controlling ailerons (wing part)
@@ -34,10 +34,10 @@ Parts
 - A lipo battery which can provide high current.
 - A DC-DC step-up converter that stabilizes 3.3V from 2 - 5V (I used Pololu
   u1v10f3 converter which is tiny).
-- Joystick or gamepad. You can try using an accelerometer in the laptop, or
-  mobile, or touch screens. Go wild. Controlling it is hard though.
+- Joystick or gamepad. You can try using an accelerometer in the laptop, or a
+  mobile, or some touch screens. Go wild. Controlling it is hard though.
 - Some glue, wires, soldering iron.
-- Something to program ESP-12S (rpi, ftdi, some serial bridge).
+- Something to flash the ESP-12S (rpi, ftdi, some serial bridge).
 
 If going for a powered craft and not a glider:
 - 2x fast DC motor, for example for a small quadrocopter like hubsan.
@@ -45,7 +45,7 @@ If going for a powered craft and not a glider:
 - A capacitor, 100nF, or 1uF - to limit noise (probably not needed)
 - a schottky diode for limiting noise of switched selenoids in the motors (probably not needed)
 
-My total was 97 grams.
+Glider wasn't really fun. My total was 97 grams.
 
 The wifi range between ESP and my laptop turned out to be more than required to
 fly on the open area. I had more problems with the near by river or the gamepad
@@ -75,4 +75,26 @@ river.
 Media
 -----
 
-TODO Links
+Pictures.
+![Nose battery](media/01_nose_battery.jpg)
+![02_cockpit.jpg](media/02_cockpit.jpg)
+![03a_mess.jpg](media/03a_mess.jpg)
+![03b_mess.jpg](media/03b_mess.jpg)
+![04_aileron_servo.jpg](media/04_aileron_servo.jpg)
+![05_motor.jpg](media/05_motor.jpg)
+![06_cabling.jpg](media/06_cabling.jpg)
+![07_elevator.jpg](media/07_elevator.jpg)
+![08_pads.jpg](media/08_pads.jpg)
+
+Moving pictures:
+- ![Noise on battery made by motors without capacitors](media/cmp_power_noise_without_cap_with_poor_battery.mp4)
+- ![Added a 100nf capacitor](media/cmp_power_noise_with_cap_with_poor_battery.mp4)
+
+I was chasing a problem where the ESP was suddently turning off. I though that
+was because of the noise, but it turned out that is was the overcurrent
+protection in the battery which was triggered - partially because of noise,
+mostly because of too high current. Capacitor helped a bit and I've left it
+there.
+
+With a better battery the thrust improved too:
+![cmp_true_power_good_battery.mp4](media/cmp_true_power_good_battery.mp4)
