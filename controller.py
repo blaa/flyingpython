@@ -1,19 +1,38 @@
 #!/usr/bin/env python3
 
+# (C) 2020 by Tomasz bla Fortuna <bla@thera.be>
+# License: MIT
+#
+# Controller for the µpython avionics:
+# - ~20 times per second executes control loop:
+# - Reads gamepad/joystick
+# - performs all calculations, scaling, trimming,
+# - formats UDP packets with data and sends to the plane.
+#
+# Use this file on the computer (or a raspberry) connected to the plane
+# over a Wifi.
+
 import time
 import pygame
 import struct
 import socket
 
+
+# Joystick dependent constants
 JOY_ID = 0
 PITCH_AXIS = 1
 ROLL_AXIS = 0
 ENGINE_AXIS = 4
 
+# Plane/control constants. Tune this.
 SCALE_PITCH_FACTOR = 0.3
 ROLL_SCALE_FACTOR = 0.4
+
+# How often do we update the pitch/roll, and the timeout for motor power on
+# the disconnect.
 UPDATES_PER_S = 20
 ENGINE_DELAY = UPDATES_PER_S * 2
+
 
 class Flyer:
     "Flyer interface"
@@ -24,9 +43,9 @@ class Flyer:
 
     def xmit(self, data):
         self.s.sendto(data, self.address)
-        pass
 
     def control(self, pwm_a, pwm_b, pwm_c, pwm_d, toggle_a, toggle_b):
+        # NOTE: Toggles are currently unused.
         data = struct.pack("HHHHBB", pwm_a, pwm_b,
                            pwm_c, pwm_d, toggle_a, toggle_b)
         self.xmit(data)
@@ -178,6 +197,7 @@ class Control:
         else:
             print("Unhandled button", button)
 
+
 def main():
     address = ("192.168.4.1", 4242)
     flyer = Flyer(address)
@@ -189,6 +209,7 @@ def main():
     except KeyboardInterrupt:
         print("Interrupted")
         return
+
 
 if __name__ == "__main__":
     main()
